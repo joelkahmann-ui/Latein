@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Legio Latina – Latein-Formen lernen</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--lapis:#14235a;--deep:#0c1640;--gold:#e6bb4a;--marble:#f1ede4;--ink:#1d1a14;--red:#d6454a;--teal:#2fa39a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+#app{height:100vh;height:100dvh}
+body{background:var(--deep);color:var(--marble);font-family:"Alegreya Sans",system-ui,sans-serif;font-size:18px;
+background-image:repeating-conic-gradient(from 45deg at 50% 50%,#14235a 0 25%,#101c4c 0 50%);background-size:44px 44px}
+#app{max-width:560px;height:100%;margin:0 auto;display:flex;flex-direction:column;padding:10px 14px 14px;position:relative}
+h1,.cz{font-family:Cinzel,Georgia,serif}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700}
+.hud .hearts{color:var(--red);font-size:24px;letter-spacing:2px;min-width:80px}
+.hud .score{font-family:Cinzel,serif;font-size:26px;color:var(--gold)}
+.hud .meta{font-size:15px;text-align:right;min-width:80px}
+#arena{flex:1;position:relative;margin:10px 0;border:3px solid var(--gold);border-radius:6px;background:rgba(8,14,44,.7);overflow:hidden;min-height:180px}
+#gate{position:absolute;left:0;right:0;bottom:0;height:26px;background:repeating-linear-gradient(90deg,var(--gold) 0 18px,#b88f2c 18px 22px);color:var(--ink);
+font-family:Cinzel,serif;font-weight:800;font-size:13px;text-align:center;line-height:26px;letter-spacing:.2em}
+#card{position:absolute;left:50%;width:78%;transform:translateX(-50%);background:var(--marble);color:var(--ink);border:3px solid var(--gold);
+border-radius:10px;padding:12px 10px;text-align:center;box-shadow:0 6px 0 #0007}
+#card .tag{font-size:14px;color:#6b5a2a;font-weight:700}
+#card .q{font-family:Cinzel,serif;font-weight:800;font-size:clamp(24px,7vw,36px);line-height:1.15}
+#card.pop{animation:pop .28s forwards}
+#card.hit{animation:hit .4s forwards}
+@keyframes pop{to{transform:translateX(-50%) scale(1.25);opacity:0}}
+@keyframes hit{25%{transform:translateX(-56%)}50%{transform:translateX(-44%)}to{transform:translateX(-50%);background:#f3b4b4}}
+#fb{position:absolute;top:8px;left:0;right:0;text-align:center;font-weight:700;color:var(--gold);min-height:1.3em;padding:0 8px}
+#opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{font:700 clamp(18px,5vw,24px) Cinzel,serif;background:var(--lapis);color:var(--marble);border:3px solid var(--gold);border-radius:8px;
+padding:14px 8px;cursor:pointer;box-shadow:0 5px 0 #0008;min-height:62px;touch-action:manipulation}
+.opt small{display:block;font:500 12px "Alegreya Sans",sans-serif;opacity:.7}
+.opt:hover{background:#1f3380}.opt:active{transform:translateY(3px);box-shadow:0 2px 0 #0008}
+.opt:focus-visible,.big:focus-visible,summary:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.opt.ok{background:var(--teal)}.opt.no{background:var(--red)}
+.ov{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(8,14,44,.96);display:flex;flex-direction:column;align-items:center;gap:12px;padding:18px 18px;overflow:auto;z-index:5;text-align:center}
+.ov[hidden]{display:none}
+h1{font-size:clamp(32px,10vw,46px);margin:6px 0 0;color:var(--gold);letter-spacing:.04em}
+.big{font:800 18px Cinzel,serif;background:var(--gold);color:var(--ink);border:0;border-radius:8px;padding:13px 18px;width:100%;max-width:340px;cursor:pointer;box-shadow:0 5px 0 #8a6a16}
+.big.alt{background:var(--lapis);color:var(--marble);border:3px solid var(--gold);box-shadow:0 5px 0 #0008}
+details{width:100%;max-width:420px;text-align:left;background:#ffffff12;border-radius:8px;padding:8px 12px}
+summary{cursor:pointer;font-weight:700}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:16px}
+th,td{border:1px solid #e6bb4a66;padding:4px 6px;text-align:left}th{color:var(--gold)}
+.miss{font-size:16px;text-align:left;max-width:380px}
+.miss b{color:var(--gold)}
+@media (prefers-reduced-motion:reduce){#card.pop,#card.hit{animation:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hud"><div class="hearts" id="hearts"></div><div class="score" id="score">0</div><div class="meta" id="meta"></div></div>
+  <div id="arena"><div id="fb"></div><div id="card" hidden><div class="tag" id="tag"></div><div class="q" id="q"></div></div><div id="gate">STADTTOR</div></div>
+  <div id="opts"></div>
+
+  <div class="ov" id="start">
+    <h1>Legio Latina</h1>
+    <div id="nojs" style="background:#d6454a;color:#fff;padding:8px 12px;border-radius:8px;font-weight:700;max-width:340px">JavaScript läuft hier nicht. Öffne den Link direkt in Safari oder Chrome, nicht in einer Vorschau oder der Dateien-App.</div>
+    <p style="margin:0;max-width:340px">Wörter greifen das Stadttor an. Wähle die richtige Form, bevor sie es erreichen. Tasten 1–4 gehen auch.</p>
+    <button class="big" data-m="all">Alle Formen</button>
+    <button class="big alt" data-m="esse">esse (sum, es, est …)</button>
+    <button class="big alt" data-m="verb">Verbendungen</button>
+    <button class="big alt" data-m="subst">Substantivendungen</button>
+    <details><summary>Spickzettel</summary>
+      <table><tr><th colspan="3">esse im Präsens</th></tr>
+      <tr><td>1.</td><td>sum = ich bin</td><td>sumus = wir sind</td></tr>
+      <tr><td>2.</td><td>es = du bist</td><td>estis = ihr seid</td></tr>
+      <tr><td>3.</td><td>est = er/sie/es ist</td><td>sunt = sie sind</td></tr></table>
+      <table><tr><th>Verbendungen</th><th>Sg.</th><th>Pl.</th></tr>
+      <tr><td>1.</td><td>-o</td><td>-mus</td></tr><tr><td>2.</td><td>-s</td><td>-tis</td></tr><tr><td>3.</td><td>-t</td><td>-nt</td></tr></table>
+      <table><tr><th>Substantive</th><th>Sg.</th><th>Pl.</th></tr>
+      <tr><td>mask. (der)</td><td>-us</td><td>-i</td></tr><tr><td>fem. (die)</td><td>-a</td><td>-ae</td></tr><tr><td>neutr. (das)</td><td>-um</td><td>-a</td></tr></table>
+    </details>
+  </div>
+
+  <div class="ov" id="over" hidden>
+    <h1>Das Tor ist gefallen</h1>
+    <div class="cz" style="font-size:30px" id="fin"></div>
+    <div id="best"></div>
+    <div class="miss" id="miss"></div>
+    <button class="big" id="again">Nochmal kämpfen</button>
+    <button class="big alt" id="menu">Menü</button>
+  </div>
+</div>
+<script>
+window.addEventListener('error',function(e){var d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99;background:#d6454a;color:#fff;padding:8px;font:14px sans-serif';d.textContent='Fehler: '+e.message+' (Zeile '+e.lineno+')';document.body.appendChild(d)});
+(function(){
+var nj=document.getElementById("nojs");if(nj)nj.style.display="none";
+const E=[["sum","ich bin"],["sumus","wir sind"],["es","du bist"],["estis","ihr seid"],["est","er/sie/es ist"],["sunt","sie sind"]];
+const V=[["o","mus"],["s","tis"],["t","nt"]];
+const S=[["Maskulinum (der)","us","i"],["Femininum (die)","a","ae"],["Neutrum (das)","um","a"]];
+const N=["Singular","Plural"];
+const rnd=n=>Math.floor(Math.random()*n);
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const $=id=>document.getElementById(id);
+const builders={
+  esse(){const i=rnd(6);return Math.random()<.5
+    ?{tag:"Was heißt das?",q:E[i][0],a:E[i][1],pool:E.map(x=>x[1])}
+    :{tag:"Wie heißt das auf Latein?",q:E[i][1],a:E[i][0],pool:E.map(x=>x[0])}},
+  verb(){const i=rnd(3),j=rnd(2);return{tag:"Verbendung",q:`${i+1}. Person ${N[j]}`,a:V[i][j],pool:[].concat(V[0],V[1],V[2])}},
+  subst(){const i=rnd(3),j=rnd(2);return{tag:"Substantivendung",q:`${S[i][0]} ${N[j]}`,a:S[i][1+j],pool:Array.from(new Set([].concat(S[0].slice(1),S[1].slice(1),S[2].slice(1))))}}
+};
+let mode="all",st,raf,last,lock;
+function make(){
+  const k=mode==="all"?["esse","verb","subst"][rnd(3)]:mode;
+  const b=builders[k]();
+  const d=shuf([...new Set(b.pool)].filter(x=>x!==b.a)).slice(0,3);
+  b.opts=shuf([b.a,...d]);return b;
+}
+function hud(){
+  $("hearts").textContent="♥".repeat(st.lives)+"♡".repeat(3-st.lives);
+  $("score").textContent=st.score;
+  $("meta").innerHTML=`Stufe ${st.level}<br>Serie ${st.combo}`;
+}
+function next(){
+  lock=false;st.cur=make();st.y=0;
+  const c=$("card");c.className="";c.hidden=false;
+  $("tag").textContent=st.cur.tag;$("q").textContent=st.cur.q;
+  const o=$("opts");o.innerHTML="";
+  st.cur.opts.forEach((t,i)=>{const b=document.createElement("button");b.className="opt";b.innerHTML=`${t}<small>${i+1}</small>`;b.onclick=()=>answer(t,b);o.appendChild(b)});
+  place();
+}
+function place(){const a=$("arena"),c=$("card");c.style.top=(st.y*(a.clientHeight-c.offsetHeight-26-8))+8+"px"}
+function answer(t,btn){
+  if(lock||!st)return;lock=true;
+  const ok=t===st.cur.a,c=$("card");
+  document.querySelectorAll(".opt").forEach(b=>{if(b.firstChild.textContent===st.cur.a)b.classList.add("ok")});
+  if(ok){
+    st.score+=10*(1+Math.floor(st.combo/3));st.combo++;st.kills++;st.level=1+Math.floor(st.kills/5);
+    c.className="pop";$("fb").textContent=st.combo>=3?`Serie ${st.combo}! Doppelte Punkte`:"Richtig!";
+    hud();setTimeout(next,300);
+  }else{fail(btn)}
+}
+function fail(btn){
+  if(btn)btn.classList.add("no");
+  st.combo=0;st.lives--;
+  const m=`${st.cur.q} → ${st.cur.a}`;if(!st.missed.includes(m))st.missed.push(m);
+  $("card").className="hit";$("fb").textContent=`Richtig wäre: ${st.cur.a}`;
+  hud();
+  if(st.lives<=0)setTimeout(end,900);else setTimeout(next,1100);
+}
+function loop(ts){
+  if(!st)return;
+  const dt=Math.min(.05,(ts-(last||ts))/1000);last=ts;
+  if(!lock){
+    st.y+=dt*Math.min(.38,.085+.014*st.level);
+    if(st.y>=1){st.y=1;lock=true;document.querySelectorAll(".opt").forEach(b=>{if(b.firstChild.textContent===st.cur.a)b.classList.add("ok")});fail(null)}
+    place();
+  }
+  raf=requestAnimationFrame(loop);
+}
+function start(m){
+  mode=m;st={lives:3,score:0,combo:0,kills:0,level:1,missed:[],y:0};
+  $("start").hidden=true;$("over").hidden=true;$("fb").textContent="";
+  hud();last=0;next();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);
+}
+function end(){
+  cancelAnimationFrame(raf);const s=st;st=null;
+  let best=0;try{best=+localStorage.getItem("ll_best")||0;if(s.score>best){best=s.score;localStorage.setItem("ll_best",best)}}catch(e){best=Math.max(best,s.score)}
+  $("fin").textContent=`${s.score} Punkte`;
+  $("best").textContent=`Rekord: ${best} · Stufe ${s.level}`;
+  $("miss").innerHTML=s.missed.length?"<b>Das übst du nochmal:</b><br>"+s.missed.join("<br>"):"";
+  $("opts").innerHTML="";$("card").hidden=true;$("over").hidden=false;
+}
+document.addEventListener("click",function(e){var t=e.target.closest?e.target.closest("[data-m]"):null;if(t)start(t.getAttribute("data-m"))});
+$("again").onclick=()=>start(mode);
+$("menu").onclick=()=>{$("over").hidden=true;$("start").hidden=false};
+addEventListener("keydown",e=>{
+  const n=+e.key;if(st&&n>=1&&n<=4){const b=document.querySelectorAll(".opt")[n-1];if(b)b.click()}
+});
+addEventListener("resize",()=>st&&place());
+})();
+</script>
+</body>
+</html>
